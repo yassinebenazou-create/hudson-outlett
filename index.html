@@ -19,9 +19,9 @@
 </head>
 <body>
   <!-- =====================================================================
-       ONBOARDING / SPLASH COVER SCREEN (First Screen on App Open)
+       ONBOARDING / SPLASH COVER SCREEN (First Launch Only)
        ===================================================================== -->
-  <section id="onboarding-screen" class="onboarding-screen" aria-label="Écran d'accueil">
+  <section id="onboarding-screen" class="onboarding-screen hidden" aria-label="Écran d'accueil">
     <div class="welcome-container">
       <div class="welcome-cover-stage">
         <div class="welcome-cover-frame">
@@ -71,9 +71,12 @@
       <!-- ==================== VIEW 1: ACCUEIL ==================== -->
       <section id="view-accueil" class="view active" aria-label="Accueil">
         <div class="dash-top-bar">
-          <div class="greeting-block">
-            <h1 id="greeting-title" class="greeting-title">Bonjour 👋</h1>
-            <p id="header-date" class="greeting-date">—</p>
+          <div class="dash-greeting-row">
+            <img id="dash-avatar-img" class="dash-avatar-img hidden" alt="Photo de profil" />
+            <div class="greeting-block">
+              <h1 id="greeting-title" class="greeting-title">Bonjour 👋</h1>
+              <p id="header-date" class="greeting-date">—</p>
+            </div>
           </div>
           <div class="dash-top-actions">
             <span id="offline-pill-dash" class="offline-pill hidden" title="Mode hors-ligne actif">Hors-ligne</span>
@@ -351,11 +354,18 @@
 
         <!-- Profile Header -->
         <div class="settings-profile-header">
-          <div class="settings-avatar-circle" id="profile-avatar">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-            </svg>
-          </div>
+          <button type="button" id="btn-profile-photo" class="settings-avatar-btn" aria-label="Ajouter ou modifier la photo de profil" title="Changer la photo de profil">
+            <div class="settings-avatar-circle" id="profile-avatar">
+              <svg id="profile-avatar-placeholder" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+              </svg>
+              <img id="profile-avatar-img" class="settings-avatar-img hidden" alt="Photo de profil" />
+            </div>
+            <span class="avatar-camera-badge" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </span>
+          </button>
+          <input type="file" id="input-profile-photo" accept="image/*" class="hidden" />
           <div class="settings-profile-meta">
             <div class="settings-profile-name-row">
               <span id="settings-display-name" class="settings-profile-name">Employé Hudson</span>
@@ -364,6 +374,7 @@
               </button>
             </div>
             <span class="settings-profile-role">Employé Hudson</span>
+            <button type="button" id="btn-remove-photo" class="btn-remove-photo hidden">Supprimer la photo</button>
             <div id="settings-name-editor" class="profile-input-row hidden">
               <input type="text" id="settings-name" class="text-input" placeholder="Votre prénom et nom" maxlength="40" />
               <button type="button" id="btn-save-name" class="btn btn-primary btn-sm">OK</button>

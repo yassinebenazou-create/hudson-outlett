@@ -22,6 +22,7 @@
     return {
       version: 1,
       employeeName: '',
+      profilePhoto: '',
       onboardingDone: false,
       theme: 'light',
       language: 'fr',
@@ -66,6 +67,7 @@
     return {
       version: 1,
       employeeName: typeof parsed.employeeName === 'string' ? parsed.employeeName : '',
+      profilePhoto: typeof parsed.profilePhoto === 'string' ? parsed.profilePhoto : '',
       onboardingDone: Boolean(parsed.onboardingDone),
       theme: parsed.theme === 'dark' ? 'dark' : 'light',
       language: 'fr',

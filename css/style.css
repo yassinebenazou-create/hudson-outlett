@@ -866,6 +866,30 @@ html, body {
   padding: 8px 4px 20px;
 }
 
+.dash-greeting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dash-avatar-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.settings-avatar-btn {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .settings-avatar-circle {
   width: 68px;
   height: 68px;
@@ -875,7 +899,41 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.settings-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-camera-badge {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #06234b;
+  color: #ffffff;
+  border: 2px solid var(--bg-page);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-photo {
+  margin-top: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--red-600);
+  cursor: pointer;
 }
 
 .settings-profile-meta {

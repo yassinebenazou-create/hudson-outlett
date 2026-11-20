@@ -92,6 +92,16 @@
     $('greeting-title').textContent = firstName ? `Bonjour ${firstName} 👋` : 'Bonjour 👋';
     $('header-date').textContent = Schedule.formatFrenchDate(now);
 
+    const dashAvatar = $('dash-avatar-img');
+    if (dashAvatar) {
+      if (appData.profilePhoto) {
+        dashAvatar.src = appData.profilePhoto;
+        dashAvatar.classList.remove('hidden');
+      } else {
+        dashAvatar.classList.add('hidden');
+      }
+    }
+
     const state = Schedule.getDashboardState(appData, now);
     const { focusShift, focusConfirmation, status, todayShift, isTodayRest } = state;
 
@@ -404,6 +414,19 @@
     $('settings-display-name').textContent = name || 'Employé Hudson';
     $('settings-name').value = name;
 
+    const hasPhoto = Boolean(appData.profilePhoto);
+    const avatarImg = $('profile-avatar-img');
+    const avatarPlaceholder = $('profile-avatar-placeholder');
+    if (hasPhoto) {
+      avatarImg.src = appData.profilePhoto;
+      avatarImg.classList.remove('hidden');
+      avatarPlaceholder.classList.add('hidden');
+    } else {
+      avatarImg.classList.add('hidden');
+      avatarPlaceholder.classList.remove('hidden');
+    }
+    $('btn-remove-photo').classList.toggle('hidden', !hasPhoto);
+
     $('settings-theme-select').value = appData.theme === 'dark' ? 'dark' : 'light';
     $('settings-monday-first').checked = Boolean(appData.weekStartsOnMonday);
     $('settings-volume').value = Math.round((appData.reminders.soundVolume ?? 0.8) * 100);
@@ -605,6 +628,57 @@
     });
 
     // Settings View
+    function compressProfileImage(file, size = 256) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Lecture de l\'image impossible.'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Format d\'image non supporté.'));
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const minSide = Math.min(img.width, img.height);
+            const sx = (img.width - minSide) / 2;
+            const sy = (img.height - minSide) / 2;
+            ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.src = String(reader.result || '');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    $('btn-profile-photo').addEventListener('click', () => {
+      $('input-profile-photo').click();
+    });
+
+    $('input-profile-photo').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        appData.profilePhoto = await compressProfileImage(file, 256);
+        Storage.save(appData);
+        renderSettingsView();
+        renderDashboard();
+        showToast('Photo de profil mise à jour', 'success');
+      } catch (err) {
+        showToast(err.message || 'Impossible d\'ajouter la photo.', 'error');
+      }
+      e.target.value = '';
+    });
+
+    $('btn-remove-photo').addEventListener('click', () => {
+      appData.profilePhoto = '';
+      Storage.save(appData);
+      renderSettingsView();
+      renderDashboard();
+      showToast('Photo de profil supprimée', 'info');
+    });
+
     $('btn-edit-name-toggle').addEventListener('click', () => {
       $('settings-name-editor').classList.toggle('hidden');
       $('settings-name').focus();
@@ -751,8 +825,11 @@
     bindEvents();
     registerServiceWorker();
 
-    // Always display the HUDSON OUTLET cover splash screen first when the app opens
-    showOnboarding();
+    if (appData.onboardingDone) {
+      showAppShell();
+    } else {
+      showOnboarding();
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);

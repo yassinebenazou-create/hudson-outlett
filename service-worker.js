@@ -3,7 +3,7 @@
    Provides offline support and notification click handling.
    ========================================================================== */
 
-const CACHE_NAME = 'hudson-shift-v1.0.3';
+const CACHE_NAME = 'hudson-shift-v1.0.4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -91,6 +91,7 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const targetAction = event.action || 'open';
+  const notifData = event.notification.data || {};
 
   event.waitUntil(
     self.clients
@@ -102,13 +103,17 @@ self.addEventListener('notificationclick', (event) => {
             client.postMessage({
               type: 'NOTIFICATION_CLICK',
               action: targetAction,
-              data: event.notification.data || {}
+              data: notifData
             });
             return;
           }
         }
         if (self.clients.openWindow) {
-          return self.clients.openWindow('./index.html');
+          const params = new URLSearchParams();
+          if (targetAction !== 'open') params.set('notif_action', targetAction);
+          if (notifData.shiftId) params.set('shift_id', notifData.shiftId);
+          const query = params.toString();
+          return self.clients.openWindow(query ? `./index.html?${query}` : './index.html');
         }
         return undefined;
       })

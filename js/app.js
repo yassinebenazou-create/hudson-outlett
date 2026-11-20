@@ -142,7 +142,7 @@
       const isFinished = Boolean(focusConfirmation.finishedAt);
 
       btnStart.disabled = isStarted || isFinished;
-      btnEnd.disabled = isFinished;
+      btnEnd.disabled = !isStarted || isFinished;
 
       btnStart.querySelector('span').textContent = isStarted
         ? 'Shift démarré ✓'
@@ -158,6 +158,9 @@
       }
       if (focusConfirmation.finishedAt) {
         lines.push(`Fin confirmée à ${Schedule.formatTimeShort(new Date(focusConfirmation.finishedAt))}`);
+      }
+      if (Number.isFinite(focusConfirmation.actualDurationMinutes)) {
+        lines.push(`Durée réelle : ${Schedule.formatDuration(focusConfirmation.actualDurationMinutes)}`);
       }
       if (lines.length > 0) {
         tsBox.innerHTML = lines.map((l) => `<div>• ${l}</div>`).join('');
@@ -194,19 +197,32 @@
 
     if (!appData.confirmations) appData.confirmations = {};
     const existing = appData.confirmations[targetShift.shiftId] || {};
-    const nowIso = new Date().toISOString();
+    const now = new Date();
+    const nowIso = now.toISOString();
 
     if (type === 'start') {
-      existing.startedAt = existing.startedAt || nowIso;
+      if (existing.startedAt) return;
+      existing.startedAt = nowIso;
       showToast('Début de shift confirmé ! Pensez au système Hudson.', 'success');
     } else if (type === 'end') {
-      existing.finishedAt = existing.finishedAt || nowIso;
-      showToast('Fin de shift confirmée ! Pensez au système Hudson.', 'success');
+      if (!existing.startedAt) {
+        showToast("Vous devez d'abord démarrer votre shift.", 'error');
+        return;
+      }
+      if (existing.finishedAt) return;
+      existing.finishedAt = nowIso;
+      const diffMs = Math.max(0, now.getTime() - new Date(existing.startedAt).getTime());
+      existing.actualDurationMinutes = Math.round(diffMs / 60000);
+      showToast(
+        `Fin confirmée (${Schedule.formatDuration(existing.actualDurationMinutes)}) ! Pensez au système Hudson.`,
+        'success'
+      );
     }
 
     appData.confirmations[targetShift.shiftId] = existing;
     Storage.save(appData);
     renderDashboard();
+    if (currentView === 'planning') renderPlanning();
   }
 
   function startClockTicker() {
@@ -431,15 +447,14 @@
     $('alert-scheduled-time').textContent = isStart
       ? alertObj.shift.startTime
       : alertObj.shift.endTime;
-    $('alert-body').textContent = isStart
-      ? "N'oubliez pas de vous rendre sur le système Hudson pour démarrer votre shift."
-      : "N'oubliez pas de terminer votre shift sur le système Hudson.";
+    $('alert-body').textContent = alertObj.body;
 
     const btnConfirm = $('btn-alert-confirm');
     btnConfirm.className = `btn btn-pill btn-block ${isStart ? 'btn-navy' : 'btn-danger'}`;
     $('btn-alert-confirm-text').textContent = isStart
-      ? "J'ai démarré mon shift"
-      : "J'ai terminé mon shift";
+      ? 'Confirmer le démarrage'
+      : 'Terminer';
+    $('btn-alert-snooze').textContent = isStart ? 'Plus tard' : 'Continuer mon shift';
 
     $('reminder-alert-modal').classList.remove('hidden');
   }
@@ -686,8 +701,14 @@
 
     $('btn-alert-snooze').addEventListener('click', () => {
       if (activeAlert) {
-        Reminders.snoozeReminder(appData, activeAlert.shift.shiftId, activeAlert.type, 5);
-        showToast('Rappel reporté de 5 minutes', 'info');
+        const snoozeMins = activeAlert.type === 'end' ? 15 : 5;
+        Reminders.snoozeReminder(appData, activeAlert.shift.shiftId, activeAlert.type, snoozeMins);
+        showToast(
+          activeAlert.type === 'end'
+            ? 'Shift maintenu actif — nouveau rappel dans 15 min'
+            : 'Rappel reporté de 5 minutes',
+          'info'
+        );
       }
       closeReminderAlertModal();
     });
@@ -867,6 +888,28 @@
   // ========================================================================
   // SERVICE WORKER REGISTRATION & BOOTSTRAP
   // ========================================================================
+  function handleNotificationAction(action, shiftId) {
+    if (!action || action === 'open') {
+      switchView('accueil');
+      return;
+    }
+    const targetShift = shiftId ? { shiftId } : null;
+    if (action === 'confirm_start') {
+      appData.onboardingDone = true;
+      showAppShell();
+      confirmShiftAction('start', targetShift);
+    } else if (action === 'confirm_end') {
+      appData.onboardingDone = true;
+      showAppShell();
+      confirmShiftAction('end', targetShift);
+    } else if (action === 'continue_shift' && shiftId) {
+      appData.onboardingDone = true;
+      showAppShell();
+      Reminders.snoozeReminder(appData, shiftId, 'end', 15);
+      showToast('Shift maintenu actif — nouveau rappel dans 15 min', 'info');
+    }
+  }
+
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker
@@ -874,7 +917,7 @@
       .then(() => {
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
-            switchView('accueil');
+            handleNotificationAction(event.data.action, event.data.data && event.data.data.shiftId);
           }
         });
       })
@@ -889,6 +932,15 @@
     Settings.initPWAInstallListener(() => updatePWAInstallUI());
     bindEvents();
     registerServiceWorker();
+
+    const params = new URLSearchParams(global.location.search);
+    const notifAction = params.get('notif_action');
+    const shiftId = params.get('shift_id');
+    if (notifAction) {
+      global.history.replaceState({}, '', global.location.pathname);
+      handleNotificationAction(notifAction, shiftId);
+      return;
+    }
 
     if (appData.onboardingDone) {
       showAppShell();

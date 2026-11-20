@@ -6,8 +6,12 @@
 (function (global) {
   'use strict';
 
+  const START_SOON_MESSAGE =
+    'Votre shift est bientôt prévu. Êtes-vous prêt à démarrer ?';
   const START_MESSAGE =
     "Il est temps de commencer votre shift ! N'oubliez pas de démarrer votre shift dans le système Hudson.";
+  const END_SOON_MESSAGE =
+    'Votre shift approche de sa fin. Souhaitez-vous terminer votre shift ?';
   const END_MESSAGE =
     "Votre shift est terminé ! N'oubliez pas de terminer votre shift dans le système Hudson.";
 
@@ -103,6 +107,16 @@
   async function sendSystemNotification(title, body, data = {}) {
     if (getPermissionStatus() !== 'granted') return false;
 
+    const actions =
+      data.type === 'start'
+        ? [{ action: 'confirm_start', title: 'Confirmer le démarrage' }]
+        : data.type === 'end'
+          ? [
+              { action: 'confirm_end', title: 'Terminer' },
+              { action: 'continue_shift', title: 'Continuer mon shift' }
+            ]
+          : [];
+
     const options = {
       body,
       icon: './assets/icon-192.png',
@@ -117,7 +131,11 @@
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.ready;
         if (reg && reg.showNotification) {
-          await reg.showNotification(title, options);
+          try {
+            await reg.showNotification(title, actions.length ? { ...options, actions } : options);
+          } catch {
+            await reg.showNotification(title, options);
+          }
           return true;
         }
       }
@@ -183,7 +201,7 @@
                   minBefore === 0
                     ? 'Il est temps de commencer votre shift !'
                     : `Votre shift commence dans ${minBefore} min`,
-                body: START_MESSAGE,
+                body: minBefore > 0 ? START_SOON_MESSAGE : START_MESSAGE,
                 sound: data.reminders.startSound
               };
               break;
@@ -213,8 +231,8 @@
 
       if (triggered) break;
 
-      // --- END REMINDERS ---
-      if (data.reminders.endEnabled && !conf.finishedAt) {
+      // --- END REMINDERS (only if shift was explicitly started and not yet finished) ---
+      if (data.reminders.endEnabled && conf.startedAt && !conf.finishedAt) {
         const snoozeKey = `${shift.shiftId}_end`;
         const snoozedUntil = (data.snoozedUntil && data.snoozedUntil[snoozeKey]) || 0;
 
@@ -243,7 +261,7 @@
                   minBefore === 0
                     ? 'Votre shift est terminé !'
                     : `Votre shift se termine dans ${minBefore} min`,
-                body: END_MESSAGE,
+                body: minBefore > 0 ? END_SOON_MESSAGE : END_MESSAGE,
                 sound: data.reminders.endSound
               };
               break;
@@ -320,7 +338,9 @@
   }
 
   global.HudsonReminders = {
+    START_SOON_MESSAGE,
     START_MESSAGE,
+    END_SOON_MESSAGE,
     END_MESSAGE,
     SOUND_OPTIONS,
     playSound,

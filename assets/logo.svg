@@ -1,25 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <defs>
-    <linearGradient id="hsNavy" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0A192F"/>
-      <stop offset="100%" stop-color="#17325C"/>
-    </linearGradient>
-    <linearGradient id="hsAccent" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#3B82F6"/>
-      <stop offset="100%" stop-color="#2563EB"/>
-    </linearGradient>
-  </defs>
-  <rect width="128" height="128" rx="28" fill="url(#hsNavy)"/>
-  <!-- Clock outer ring -->
-  <circle cx="64" cy="64" r="46" stroke="url(#hsAccent)" stroke-width="4" stroke-dasharray="220 40" stroke-linecap="round"/>
-  <!-- Clock tick marks (12, 3, 6, 9) -->
-  <line x1="64" y1="14" x2="64" y2="21" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
-  <line x1="114" y1="64" x2="107" y2="64" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
-  <line x1="64" y1="114" x2="64" y2="107" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
-  <line x1="14" y1="64" x2="21" y2="64" stroke="#E2E8F0" stroke-width="3" stroke-linecap="round"/>
-  <!-- Clock hand accent in red -->
-  <path d="M64 27 L64 40" stroke="#EF4444" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="64" cy="24" r="3" fill="#EF4444"/>
-  <!-- HS Monogram -->
-  <text x="64" y="77" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="38" letter-spacing="-1.5" fill="#FFFFFF">HS</text>
+  <rect width="128" height="128" rx="28" fill="#06234B"/>
+  <!-- HUDSON Shield Emblem -->
+  <path d="M64 22C53 22 47 30 45 41L38 88C46 95 55 98 64 98C73 98 82 95 90 88L83 41C81 30 75 22 64 22Z" fill="#FFFFFF"/>
+  <!-- Inner Cutout -->
+  <path d="M64 38L75 44L64 87L53 44Z" fill="#06234B"/>
 </svg>

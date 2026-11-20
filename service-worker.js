@@ -3,7 +3,7 @@
    Provides offline support and notification click handling.
    ========================================================================== */
 
-const CACHE_NAME = 'hudson-shift-v1.0.0';
+const CACHE_NAME = 'hudson-shift-v1.0.3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -17,8 +17,17 @@ const APP_SHELL = [
   './assets/logo.svg',
   './assets/hudson-outlet-logo.png',
   './assets/hudson-cover.jpg',
+  './assets/icon-48.png',
+  './assets/icon-72.png',
+  './assets/icon-96.png',
+  './assets/icon-128.png',
+  './assets/icon-144.png',
+  './assets/icon-152.png',
   './assets/icon-192.png',
+  './assets/icon-384.png',
   './assets/icon-512.png',
+  './assets/icon-maskable-192.png',
+  './assets/icon-maskable-512.png',
   './assets/apple-touch-icon.png'
 ];
 

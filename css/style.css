@@ -63,6 +63,7 @@ html, body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
 .hidden {
@@ -98,65 +99,55 @@ html, body {
   animation: fadeSlideUp 0.3s ease;
 }
 
-.welcome-top {
+.welcome-cover-stage {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 44px 24px 12px;
+  padding: 28px 20px 64px;
   text-align: center;
+  background: radial-gradient(circle at 50% 42%, #ffffff 0%, #f8fafc 100%);
 }
 
-.welcome-outlet-logo {
-  width: 210px;
-  max-width: 70%;
-  height: auto;
-  object-fit: contain;
-  margin-bottom: 14px;
-}
-
-.welcome-wordmark {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin-bottom: 12px;
-}
-
-.welcome-wordmark .brand-hudson {
-  color: #06234b;
-}
-
-.welcome-wordmark .brand-shift {
-  color: #d9232e;
-}
-
-.welcome-tagline {
-  font-size: 1.18rem;
-  font-weight: 500;
-  color: #1e293b;
-  line-height: 1.35;
-}
-
-.welcome-storefront {
-  position: relative;
+.welcome-cover-frame {
   width: 100%;
-  height: 108px;
-  margin-bottom: -18px;
-  pointer-events: none;
+  max-width: 310px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(6, 35, 75, 0.14);
+  margin-bottom: 18px;
+  animation: coverReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.storefront-svg {
+.welcome-cover-img {
   width: 100%;
   height: 100%;
+  object-fit: contain;
   display: block;
 }
 
-.storefront-fade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, #ffffff 0%, rgba(255, 255, 255, 0) 45%);
+.welcome-tagline {
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: #06234b;
+  line-height: 1.35;
+  animation: fadeSlideUp 0.45s ease 0.12s both;
+}
+
+@keyframes coverReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .welcome-bottom-wave {
@@ -1454,4 +1445,132 @@ html, body {
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS (Small Mobile, Tablet & Desktop)
+   ========================================================================== */
+@media (max-width: 380px) {
+  .app-main {
+    padding: 14px 12px 92px;
+  }
+
+  .card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .greeting-title {
+    font-size: 1.25rem;
+  }
+
+  .hero-shift-hours {
+    font-size: 1.22rem;
+  }
+
+  .countdown-box {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .countdown-value {
+    font-size: 1.5rem;
+  }
+
+  .schedule-day-row {
+    padding: 10px 11px;
+    gap: 8px;
+  }
+
+  .sound-row {
+    flex-wrap: wrap;
+  }
+
+  .welcome-cover-frame {
+    max-width: 245px;
+    border-radius: 28px;
+  }
+}
+
+@media (min-width: 768px) {
+  /* Welcome / First-Visit Screen centered card on Tablet & Desktop */
+  .onboarding-screen {
+    align-items: center;
+    padding: 32px 24px;
+    background: linear-gradient(155deg, #06234b 0%, #0f2d59 60%, #1d4ed8 100%);
+  }
+
+  .welcome-container {
+    min-height: 620px;
+    max-width: 440px;
+    border-radius: 28px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Wider App Shell & Floating Bottom Nav */
+  .app-shell {
+    max-width: 880px;
+  }
+
+  .app-main {
+    padding: 24px 24px 104px;
+  }
+
+  .bottom-nav {
+    max-width: 560px;
+    bottom: 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* 2-Column Dashboard Grid */
+  #view-accueil.active {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  #view-accueil .dash-top-bar {
+    grid-column: 1 / -1;
+    padding-bottom: 4px;
+  }
+
+  #view-accueil .card {
+    margin-bottom: 0;
+  }
+
+  /* 2-Column Weekly Planning Grid */
+  .schedule-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* 2-Column Reminders Grid */
+  #view-rappels.active {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  #view-rappels .view-header,
+  #view-rappels .notif-banner,
+  #view-rappels .info-card {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+
+  #view-rappels .card {
+    margin-bottom: 0;
+  }
+
+  /* Settings centered cleanly */
+  #view-parametres.active {
+    max-width: 640px;
+    margin: 0 auto;
+  }
 }

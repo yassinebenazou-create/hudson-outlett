@@ -17,47 +17,19 @@
 </head>
 <body>
   <!-- =====================================================================
-       ONBOARDING / WELCOME SCREEN (First Visit)
+       ONBOARDING / SPLASH COVER SCREEN (First Screen on App Open)
        ===================================================================== -->
-  <section id="onboarding-screen" class="onboarding-screen hidden" aria-label="Écran d'accueil">
+  <section id="onboarding-screen" class="onboarding-screen" aria-label="Écran d'accueil">
     <div class="welcome-container">
-      <div class="welcome-top">
-        <img
-          src="./assets/hudson-outlet-logo.png"
-          alt="Hudson Outlet"
-          class="welcome-outlet-logo"
-        />
-
-        <div class="welcome-wordmark">
-          <span class="brand-hudson">HUDSON</span>
-          <span class="brand-shift">SHIFT</span>
+      <div class="welcome-cover-stage">
+        <div class="welcome-cover-frame">
+          <img
+            src="./assets/hudson-cover.jpg"
+            alt="Hudson Outlet"
+            class="welcome-cover-img"
+          />
         </div>
-
-        <p class="welcome-tagline">Ne manquez plus<br />vos shifts !</p>
-      </div>
-
-      <!-- Subtle Outlet Storefront Architectural Illustration -->
-      <div class="welcome-storefront" aria-hidden="true">
-        <svg viewBox="0 0 400 110" preserveAspectRatio="none" class="storefront-svg">
-          <rect x="0" y="18" width="400" height="92" fill="#f1f5f9"/>
-          <!-- Facade panels -->
-          <rect x="12" y="24" width="76" height="86" fill="#e2e8f0" rx="2"/>
-          <rect x="96" y="16" width="84" height="94" fill="#cbd5e1" rx="2"/>
-          <rect x="188" y="22" width="102" height="88" fill="#e2e8f0" rx="2"/>
-          <rect x="298" y="26" width="90" height="84" fill="#f8fafc" rx="2"/>
-          <!-- Storefront windows -->
-          <rect x="22" y="54" width="56" height="44" fill="#94a3b8" opacity="0.45"/>
-          <rect x="112" y="48" width="52" height="50" fill="#64748b" opacity="0.4"/>
-          <rect x="204" y="52" width="70" height="46" fill="#94a3b8" opacity="0.4"/>
-          <rect x="312" y="56" width="62" height="42" fill="#cbd5e1" opacity="0.6"/>
-          <!-- Subtle signs -->
-          <rect x="34" y="34" width="32" height="8" rx="2" fill="#94a3b8" opacity="0.5"/>
-          <rect x="122" y="28" width="32" height="10" rx="2" fill="#64748b" opacity="0.5"/>
-          <rect x="220" y="34" width="38" height="8" rx="2" fill="#94a3b8" opacity="0.45"/>
-          <!-- Perspective roof line -->
-          <path d="M0 18 L140 8 L400 22" stroke="#cbd5e1" stroke-width="2" fill="none"/>
-        </svg>
-        <div class="storefront-fade"></div>
+        <p class="welcome-tagline">Ne manquez plus vos shifts !</p>
       </div>
 
       <!-- Dark Navy Bottom Wave with Red Accent -->

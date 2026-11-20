@@ -16,6 +16,7 @@ const APP_SHELL = [
   './manifest.json',
   './assets/logo.svg',
   './assets/hudson-outlet-logo.png',
+  './assets/hudson-cover.jpg',
   './assets/icon-192.png',
   './assets/icon-512.png',
   './assets/apple-touch-icon.png'

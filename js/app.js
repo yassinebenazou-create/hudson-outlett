@@ -751,11 +751,8 @@
     bindEvents();
     registerServiceWorker();
 
-    if (appData.onboardingDone) {
-      showAppShell();
-    } else {
-      showOnboarding();
-    }
+    // Always display the HUDSON OUTLET cover splash screen first when the app opens
+    showOnboarding();
   }
 
   document.addEventListener('DOMContentLoaded', init);

@@ -224,6 +224,11 @@
   function renderPlanning() {
     $('toggle-repeat-weekly').checked = Boolean(appData.repeatWeekly);
 
+    const summary = Schedule.getWeeklySummary(appData.schedule);
+    $('summary-total-hours').textContent = summary.formattedHours;
+    $('summary-work-days').textContent = String(summary.workingDays);
+    $('summary-rest-days').textContent = String(summary.restDays);
+
     const listEl = $('weekly-schedule-list');
     listEl.innerHTML = '';
 
@@ -299,6 +304,44 @@
       row.appendChild(info);
       row.appendChild(actions);
       listEl.appendChild(row);
+    });
+
+    renderConfirmationHistory();
+  }
+
+  function renderConfirmationHistory() {
+    const container = $('shift-history-list');
+    if (!container) return;
+    const entries = Object.entries(appData.confirmations || {})
+      .filter(([, val]) => val && (val.startedAt || val.finishedAt))
+      .sort(([a], [b]) => b.localeCompare(a))
+      .slice(0, 7);
+
+    if (entries.length === 0) {
+      container.innerHTML = '<p class="muted-text">Aucune confirmation enregistrée pour le moment.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    entries.forEach(([dateKey, conf]) => {
+      const [y, m, d] = dateKey.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const item = document.createElement('div');
+      item.className = 'history-item';
+
+      const startStr = conf.startedAt ? Schedule.formatTimeShort(new Date(conf.startedAt)) : '—';
+      const endStr = conf.finishedAt ? Schedule.formatTimeShort(new Date(conf.finishedAt)) : '—';
+
+      item.innerHTML = `
+        <div>
+          <div class="history-date">${Schedule.formatFrenchDate(dateObj)}</div>
+          <div class="history-times">Début : ${startStr} • Fin : ${endStr}</div>
+        </div>
+        <span class="badge ${conf.finishedAt ? 'badge-success' : 'badge-active'}">
+          ${conf.finishedAt ? 'Terminé' : 'En cours'}
+        </span>
+      `;
+      container.appendChild(item);
     });
   }
 
@@ -525,6 +568,28 @@
       renderPlanning();
       renderDashboard();
       showToast('Horaire enregistré', 'success');
+    });
+
+    $('btn-apply-all-workdays').addEventListener('click', () => {
+      if (editingDayIndex === null) return;
+      const startVal = $('editor-start').value || '08:00';
+      const endVal = $('editor-end').value || '16:00';
+      const breakVal = Number($('editor-break').value) || 0;
+      for (let d = 0; d <= 6; d++) {
+        if (d === editingDayIndex || appData.schedule[d].enabled) {
+          appData.schedule[d] = {
+            enabled: d === editingDayIndex ? $('editor-enabled').checked : true,
+            start: startVal,
+            end: endVal,
+            breakMinutes: breakVal
+          };
+        }
+      }
+      Storage.save(appData);
+      closeDayEditor();
+      renderPlanning();
+      renderDashboard();
+      showToast('Horaire appliqué à tous les jours travaillés', 'success');
     });
 
     // Reminders View

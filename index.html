@@ -188,6 +188,23 @@
           <p class="view-subtitle">Touchez un jour pour modifier ses horaires</p>
         </div>
 
+        <article class="card planning-summary-card">
+          <div class="planning-summary-grid">
+            <div class="summary-stat">
+              <span class="summary-stat-value" id="summary-total-hours">0h</span>
+              <span class="summary-stat-label">Heures / semaine</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-stat-value" id="summary-work-days">0</span>
+              <span class="summary-stat-label">Jours travaillés</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-stat-value" id="summary-rest-days">7</span>
+              <span class="summary-stat-label">Jours de repos</span>
+            </div>
+          </div>
+        </article>
+
         <article class="card">
           <div class="card-header">
             <h2 class="card-title">Cette semaine</h2>
@@ -200,6 +217,16 @@
 
           <div id="weekly-schedule-list" class="schedule-list">
             <!-- Dynamically rendered 7 days -->
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2 class="card-title">Historique de mes confirmations</h2>
+            <span class="badge badge-info">Local</span>
+          </div>
+          <div id="shift-history-list" class="history-list">
+            <p class="muted-text">Aucune confirmation enregistrée pour le moment.</p>
           </div>
         </article>
 
@@ -554,6 +581,9 @@
 
         <div class="modal-actions">
           <button type="submit" class="btn btn-danger btn-lg btn-block">Enregistrer</button>
+          <button type="button" id="btn-apply-all-workdays" class="btn btn-secondary btn-sm btn-block">
+            Appliquer cet horaire aux autres jours travaillés
+          </button>
         </div>
       </form>
     </div>

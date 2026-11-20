@@ -141,6 +141,24 @@
     return weekStartsOnMonday ? [1, 2, 3, 4, 5, 6, 0] : [0, 1, 2, 3, 4, 5, 6];
   }
 
+  function getWeeklySummary(schedule) {
+    let workingDays = 0;
+    let totalNetMinutes = 0;
+    for (let d = 0; d <= 6; d++) {
+      const cfg = schedule[d];
+      if (cfg && cfg.enabled) {
+        workingDays++;
+        totalNetMinutes += getShiftDurationMinutes(cfg).netMinutes;
+      }
+    }
+    return {
+      workingDays,
+      restDays: 7 - workingDays,
+      totalNetMinutes,
+      formattedHours: formatDuration(totalNetMinutes)
+    };
+  }
+
   /**
    * Computes the primary shift to display on the Dashboard, its status,
    * countdown target, and today's shift details.
@@ -296,6 +314,7 @@
     formatCountdown,
     buildShiftInstance,
     getOrderedDays,
+    getWeeklySummary,
     getDashboardState
   };
 })(window);

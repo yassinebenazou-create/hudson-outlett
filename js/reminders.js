@@ -337,6 +337,99 @@
     });
   }
 
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = global.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i++) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  async function getWebPushStatus() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in global)) {
+      return { supported: false, subscribed: false };
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      return { supported: true, subscribed: Boolean(sub), subscription: sub };
+    } catch {
+      return { supported: true, subscribed: false };
+    }
+  }
+
+  async function subscribeToWebPush(data) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in global)) {
+      return { ok: false, reason: 'unsupported' };
+    }
+    const perm = await requestPermission();
+    if (perm !== 'granted') {
+      return { ok: false, reason: 'permission_denied' };
+    }
+
+    try {
+      const keyRes = await fetch('./api/vapid-public-key');
+      const keyJson = await keyRes.json();
+      if (!keyRes.ok || !keyJson.publicKey) {
+        return { ok: false, reason: 'backend_not_configured', detail: keyJson.error || '' };
+      }
+
+      const reg = await navigator.serviceWorker.ready;
+      let subscription = await reg.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(keyJson.publicKey)
+        });
+      }
+
+      const subRes = await fetch('./api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId: data.deviceId,
+          subscription: subscription.toJSON(),
+          schedule: data.schedule,
+          reminders: data.reminders,
+          confirmations: data.confirmations,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Casablanca'
+        })
+      });
+      const subJson = await subRes.json();
+      if (!subRes.ok || !subJson.ok) {
+        return { ok: false, reason: 'backend_not_configured', detail: subJson.error || '' };
+      }
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, reason: 'network_error', detail: err.message };
+    }
+  }
+
+  async function syncStateToBackend(data) {
+    if (!data || !data.deviceId || !navigator.onLine) return;
+    try {
+      const status = await getWebPushStatus();
+      if (!status.subscribed) return;
+      await fetch('./api/push/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId: data.deviceId,
+          schedule: data.schedule,
+          reminders: data.reminders,
+          confirmations: data.confirmations,
+          snoozedUntil: data.snoozedUntil,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Casablanca'
+        })
+      });
+    } catch {
+      // Silently ignore offline/unconfigured backend errors
+    }
+  }
+
   global.HudsonReminders = {
     START_SOON_MESSAGE,
     START_MESSAGE,
@@ -346,6 +439,9 @@
     playSound,
     getPermissionStatus,
     requestPermission,
+    getWebPushStatus,
+    subscribeToWebPush,
+    syncStateToBackend,
     sendSystemNotification,
     checkReminders,
     snoozeReminder,

@@ -221,6 +221,7 @@
 
     appData.confirmations[targetShift.shiftId] = existing;
     Storage.save(appData);
+    Reminders.syncStateToBackend(appData);
     renderDashboard();
     if (currentView === 'planning') renderPlanning();
   }
@@ -424,8 +425,24 @@
 
     const perm = Reminders.getPermissionStatus();
     const info = Settings.getPermissionBadgeInfo(perm);
-    $('notif-status-text').textContent = `Statut : ${info.label}`;
+    $('notif-status-text').textContent = `Statut navigateur : ${info.label}`;
     $('btn-request-notif').classList.toggle('hidden', !info.canRequest);
+
+    Reminders.getWebPushStatus().then((pushStatus) => {
+      const pushEl = $('push-status-text');
+      const pushBtn = $('btn-enable-push');
+      if (!pushEl || !pushBtn) return;
+      if (!pushStatus.supported) {
+        pushEl.textContent = 'Web Push : non supporté sur ce navigateur';
+        pushBtn.classList.add('hidden');
+      } else if (pushStatus.subscribed) {
+        pushEl.textContent = 'Web Push : Actif (notifications même app fermée)';
+        pushBtn.textContent = 'Resynchroniser mon planning Push';
+      } else {
+        pushEl.textContent = 'Web Push : Non abonné';
+        pushBtn.textContent = 'Activer les notifications arrière-plan (Android)';
+      }
+    });
   }
 
   function showReminderAlertModal(alertObj) {
@@ -579,6 +596,7 @@
         breakMinutes: Number($('editor-break').value) || 0
       };
       Storage.save(appData);
+      Reminders.syncStateToBackend(appData);
       closeDayEditor();
       renderPlanning();
       renderDashboard();
@@ -601,6 +619,7 @@
         }
       }
       Storage.save(appData);
+      Reminders.syncStateToBackend(appData);
       closeDayEditor();
       renderPlanning();
       renderDashboard();
@@ -610,6 +629,7 @@
     // Reminders View
     const saveReminders = () => {
       Storage.save(appData);
+      Reminders.syncStateToBackend(appData);
       renderRemindersView();
     };
 
@@ -674,6 +694,21 @@
       } else {
         showToast('Désactivez les notifications dans les réglages du navigateur.', 'info');
         renderSettingsView();
+      }
+    });
+
+    $('btn-enable-push').addEventListener('click', async () => {
+      const result = await Reminders.subscribeToWebPush(appData);
+      renderRemindersView();
+      renderSettingsView();
+      if (result.ok) {
+        showToast('Notifications arrière-plan activées et synchronisées !', 'success');
+      } else if (result.reason === 'backend_not_configured') {
+        showToast('Serveur Push non configuré (variables VAPID/Redis manquantes sur Vercel).', 'error');
+      } else if (result.reason === 'permission_denied') {
+        showToast('Permission notifications refusée dans Chrome.', 'error');
+      } else {
+        showToast('Impossible d’activer Web Push hors-ligne.', 'error');
       }
     });
 

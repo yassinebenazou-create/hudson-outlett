@@ -244,16 +244,20 @@
           <p class="view-subtitle">Personnalisez vos alertes de début et fin de shift</p>
         </div>
 
-        <!-- Permission Banner -->
+        <!-- Permission & Web Push Banner -->
         <article id="notif-permission-card" class="card notif-banner">
           <div class="notif-banner-row">
             <div>
-              <h2 class="card-title">Notifications navigateur</h2>
+              <h2 class="card-title">Notifications & Arrière-plan (Push)</h2>
               <p id="notif-status-text" class="muted-text">Statut : vérification...</p>
+              <p id="push-status-text" class="muted-text">Web Push : vérification...</p>
             </div>
             <button type="button" id="btn-request-notif" class="btn btn-primary btn-sm">Activer</button>
           </div>
-          <div class="notif-test-row">
+          <div class="notif-test-row" style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" id="btn-enable-push" class="btn btn-navy btn-sm btn-block">
+              Activer les notifications arrière-plan (Android)
+            </button>
             <button type="button" id="btn-test-notif" class="btn btn-secondary btn-sm btn-block">
               Tester une notification maintenant
             </button>

@@ -18,9 +18,17 @@
     0: { enabled: false, start: '08:00', end: '16:00', breakMinutes: 60 }  // Dimanche (Repos)
   };
 
+  function generateDeviceId() {
+    if (global.crypto && typeof global.crypto.randomUUID === 'function') {
+      return global.crypto.randomUUID();
+    }
+    return `dev-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   function getDefaultData() {
     return {
       version: 1,
+      deviceId: generateDeviceId(),
       employeeName: '',
       profilePhoto: '',
       onboardingDone: false,
@@ -66,6 +74,7 @@
 
     return {
       version: 1,
+      deviceId: typeof parsed.deviceId === 'string' && parsed.deviceId ? parsed.deviceId : generateDeviceId(),
       employeeName: typeof parsed.employeeName === 'string' ? parsed.employeeName : '',
       profilePhoto: typeof parsed.profilePhoto === 'string' ? parsed.profilePhoto : '',
       onboardingDone: Boolean(parsed.onboardingDone),

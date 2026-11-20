@@ -3,7 +3,7 @@
    Provides offline support and notification click handling.
    ========================================================================== */
 
-const CACHE_NAME = 'hudson-shift-v1.0.4';
+const CACHE_NAME = 'hudson-shift-v1.1.0';
 const APP_SHELL = [
   './',
   './index.html',
@@ -56,35 +56,57 @@ self.addEventListener('fetch', (event) => {
 
   const requestUrl = new URL(event.request.url);
   if (requestUrl.origin !== self.location.origin) return;
+  if (requestUrl.pathname.startsWith('/api/')) return;
 
+  // Network-first for app shell so Vercel deployments update installed PWAs automatically
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request)
-        .then((networkResponse) => {
-          if (
-            !networkResponse ||
-            networkResponse.status !== 200 ||
-            networkResponse.type !== 'basic'
-          ) {
-            return networkResponse;
-          }
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
-          return networkResponse;
-        })
-        .catch(() => {
+        }
+        return networkResponse;
+      })
+      .catch(() =>
+        caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
           if (event.request.mode === 'navigate') {
             return caches.match('./index.html');
           }
           return undefined;
-        });
-    })
+        })
+      )
   );
+});
+
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = { title: 'HUDSON SHIFT', body: event.data ? event.data.text() : '' };
+  }
+
+  const title = payload.title || 'HUDSON SHIFT';
+  const options = {
+    body: payload.body || '',
+    icon: './assets/icon-192.png',
+    badge: './assets/icon-192.png',
+    tag: payload.tag || `hudson-push-${Date.now()}`,
+    renotify: true,
+    requireInteraction: true,
+    actions: Array.isArray(payload.actions) ? payload.actions : [],
+    data: {
+      type: payload.type || 'start',
+      shiftId: payload.shiftId || null,
+      deviceId: payload.deviceId || null
+    }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
@@ -93,29 +115,42 @@ self.addEventListener('notificationclick', (event) => {
   const targetAction = event.action || 'open';
   const notifData = event.notification.data || {};
 
-  event.waitUntil(
-    self.clients
-      .matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if ('focus' in client) {
-            client.focus();
-            client.postMessage({
-              type: 'NOTIFICATION_CLICK',
-              action: targetAction,
-              data: notifData
-            });
-            return;
-          }
+  const backendPromise =
+    targetAction !== 'open' && notifData.deviceId && notifData.shiftId
+      ? fetch('./api/push/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deviceId: notifData.deviceId,
+            shiftId: notifData.shiftId,
+            action: targetAction
+          })
+        }).catch(() => {})
+      : Promise.resolve();
+
+  const windowPromise = self.clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          client.focus();
+          client.postMessage({
+            type: 'NOTIFICATION_CLICK',
+            action: targetAction,
+            data: notifData
+          });
+          return;
         }
-        if (self.clients.openWindow) {
-          const params = new URLSearchParams();
-          if (targetAction !== 'open') params.set('notif_action', targetAction);
-          if (notifData.shiftId) params.set('shift_id', notifData.shiftId);
-          const query = params.toString();
-          return self.clients.openWindow(query ? `./index.html?${query}` : './index.html');
-        }
-        return undefined;
-      })
-  );
+      }
+      if (self.clients.openWindow) {
+        const params = new URLSearchParams();
+        if (targetAction !== 'open') params.set('notif_action', targetAction);
+        if (notifData.shiftId) params.set('shift_id', notifData.shiftId);
+        const query = params.toString();
+        return self.clients.openWindow(query ? `./index.html?${query}` : './index.html');
+      }
+      return undefined;
+    });
+
+  event.waitUntil(Promise.all([backendPromise, windowPromise]));
 });
